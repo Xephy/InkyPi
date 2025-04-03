@@ -15,11 +15,11 @@
         <img class="current-icon" src="{{current_day_icon}}" alt="Current Weather Icon">
         <div class="current-weather">
           <div class="current-temp">{{ current_temperature }}<span class="temperature-unit">{{temperature_unit}}</span></div>
-          <div class="feels-like">Feels Like {{ feels_like }}{% if units != "standard" %}°{% endif %}</div>
+          <div class="feels-like">体感温度 {{ feels_like }}{% if units != "standard" %}°{% endif %}</div>
         </div>
     </div>
 
-    <!-- Data Points Grid (Sunset, Wind, UV, etc.) -->
+    <!-- Data Points Grid (日の入り, 風速, 紫外線, etc.) -->
     {% if plugin_settings.displayMetrics and  plugin_settings.displayMetrics == "true" %}
     <div class="data-points">
       {% for dp in data_points %}
@@ -38,7 +38,7 @@
     {% endif %}
   </div>
 
-  <!-- Hourly Temperature Graph -->
+  <!-- 時間ごとの気温 Graph -->
   {% if plugin_settings.displayGraph and plugin_settings.displayGraph == "true" %}
   <div class="chart-container">
     <canvas id="hourlyTemperatureChart"></canvas>
@@ -89,7 +89,7 @@
         labels: labels,
         datasets: [{
           type: 'line',
-          label: 'Hourly Temperature',
+          label: '時間ごとの気温',
           data: temperatures,
           borderColor: 'rgba(241, 122, 36, 0.9)', // Line color
           borderWidth: 2,
@@ -99,7 +99,7 @@
         },
         {
           type: 'bar',
-          label: 'Precipitation Probability',
+          label: '降水確率',
           data: precipitation,
           borderColor: 'rgba(26, 111, 176, 1)', // Semi-transparent blue
           borderWidth: {
