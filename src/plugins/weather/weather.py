@@ -81,7 +81,7 @@ class Weather(BasePlugin):
         current_icon = current.get("weather")[0].get("icon").replace("n", "d")
         location_str = f"{location_data.get('local_names')['ja']}"
         data = {
-            "current_date": dt.strftime("%A, %B %d"),
+            "current_date": dt.strftime("%Y年 %m-月 %-d日"),
             "location": location_str,
             "current_day_icon": self.get_plugin_dir(f'icons/{current_icon}.png'),
             "current_temperature": str(round(current.get("temp"))),
@@ -114,7 +114,7 @@ class Weather(BasePlugin):
         for hour in hourly_forecast[:24]:
             dt = datetime.fromtimestamp(hour.get('dt'), tz=timezone.utc).astimezone(tz)
             hour_forecast = {
-                "time": dt.strftime("%H時"),
+                "time": dt.strftime("%-H時"),
                 "temperature": int(hour.get("temp")),
                 "precipitiation": hour.get("pop")
             }
