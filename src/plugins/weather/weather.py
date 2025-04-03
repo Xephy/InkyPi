@@ -128,8 +128,9 @@ class Weather(BasePlugin):
         sunrise_dt = datetime.fromtimestamp(sunrise_epoch, tz=timezone.utc).astimezone(tz)
         data_points.append({
             "label": "日の出",
-            "measurement": sunrise_dt.strftime('%H:%M').lstrip("0"),
-            "unit": sunrise_dt.strftime('%p'),
+            "measurement": sunrise_dt.strftime('%-H:%M').lstrip("0"),
+            # "unit": sunrise_dt.strftime('%p'),
+            "unit": "",
             "icon": self.get_plugin_dir('icons/sunrise.png')
         })
 
@@ -137,8 +138,9 @@ class Weather(BasePlugin):
         sunset_dt = datetime.fromtimestamp(sunset_epoch, tz=timezone.utc).astimezone(tz)
         data_points.append({
             "label": "日没",
-            "measurement": sunset_dt.strftime('%H:%M').lstrip("0"),
-            "unit": sunset_dt.strftime('%p'),
+            "measurement": sunset_dt.strftime('%-H:%M').lstrip("0"),
+            # "unit": sunset_dt.strftime('%p'),
+            "unit": "",
             "icon": self.get_plugin_dir('icons/sunset.png')
         })
 
