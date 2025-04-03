@@ -79,7 +79,7 @@ class Weather(BasePlugin):
         current = weather_data.get("current")
         dt = datetime.fromtimestamp(current.get('dt'), tz=timezone.utc).astimezone(tz)
         current_icon = current.get("weather")[0].get("icon").replace("n", "d")
-        location_str = f"{location_data.get('name')}, {location_data.get('state', location_data.get('country'))}"
+        location_str = f"{location_data.get('local_names')['ja']}, {location_data.get('state', location_data.get('country'))}"
         data = {
             "current_date": dt.strftime("%A, %B %d"),
             "location": location_str,
