@@ -58,8 +58,8 @@ body {
     display: block;
     margin: auto;
     border-radius: 6px;
-    max-width: 20rem;
-    max-height: 15rem;
+    /* max-width: 20rem;
+    max-height: 15rem; */
 }
 
 /* Separator styling */
