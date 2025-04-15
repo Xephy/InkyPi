@@ -49,17 +49,17 @@ body {
 /* Current image styling */
 .image-container {
     position: relative;
-    width: 300px;
+    width: 100%;
+    max-width: 35rem;
     margin: 0 auto;
 }
 
 .image-container img {
+    width: 100%;
     height: auto;
     display: block;
     margin: auto;
     border-radius: 6px;
-    max-width: 20rem;
-    max-height: 15rem;
 }
 
 /* Separator styling */

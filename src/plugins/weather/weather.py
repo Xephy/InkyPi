@@ -6,7 +6,9 @@ import logging
 from datetime import datetime, timezone
 import pytz
 from io import BytesIO
+import locale
 
+locale.setlocale(locale.LC_TIME, "ja_JP.UTF-8")
 logger = logging.getLogger(__name__)
 
 UNITS = {
@@ -25,9 +27,9 @@ UNITS = {
     }
 }
 
-WEATHER_URL = "https://api.openweathermap.org/data/3.0/onecall?lat={lat}&lon={long}&units={units}&exclude=minutely&appid={api_key}"
-AIR_QUALITY_URL = "http://api.openweathermap.org/data/2.5/air_pollution?lat={lat}&lon={long}&appid={api_key}"
-GEOCODING_URL = "http://api.openweathermap.org/geo/1.0/reverse?lat={lat}&lon={long}&limit=1&appid={api_key}"
+WEATHER_URL = "https://api.openweathermap.org/data/3.0/onecall?lat={lat}&lon={long}&units={units}&lang=ja&exclude=minutely&appid={api_key}"
+AIR_QUALITY_URL = "http://api.openweathermap.org/data/2.5/air_pollution?lat={lat}&lon={long}&lang=ja&appid={api_key}"
+GEOCODING_URL = "http://api.openweathermap.org/geo/1.0/reverse?lat={lat}&lon={long}&lang=ja&limit=1&appid={api_key}"
 
 class Weather(BasePlugin):
     def generate_settings_template(self):
@@ -79,9 +81,9 @@ class Weather(BasePlugin):
         current = weather_data.get("current")
         dt = datetime.fromtimestamp(current.get('dt'), tz=timezone.utc).astimezone(tz)
         current_icon = current.get("weather")[0].get("icon").replace("n", "d")
-        location_str = f"{location_data.get('name')}, {location_data.get('state', location_data.get('country'))}"
+        location_str = f"{location_data.get('local_names')['ja']}"
         data = {
-            "current_date": dt.strftime("%A, %B %d"),
+            "current_date": dt.strftime("%Y年 %-m月 %-d日"),
             "location": location_str,
             "current_day_icon": self.get_plugin_dir(f'icons/{current_icon}.png'),
             "current_temperature": str(round(current.get("temp"))),
@@ -114,7 +116,7 @@ class Weather(BasePlugin):
         for hour in hourly_forecast[:24]:
             dt = datetime.fromtimestamp(hour.get('dt'), tz=timezone.utc).astimezone(tz)
             hour_forecast = {
-                "time": dt.strftime("%-I %p"),
+                "time": dt.strftime("%-H時"),
                 "temperature": int(hour.get("temp")),
                 "precipitiation": hour.get("pop")
             }
@@ -127,44 +129,46 @@ class Weather(BasePlugin):
         sunrise_epoch = weather.get('current', {}).get("sunrise")
         sunrise_dt = datetime.fromtimestamp(sunrise_epoch, tz=timezone.utc).astimezone(tz)
         data_points.append({
-            "label": "Sunrise",
-            "measurement": sunrise_dt.strftime('%I:%M').lstrip("0"),
-            "unit": sunrise_dt.strftime('%p'),
+            "label": "日の出",
+            "measurement": sunrise_dt.strftime('%-H:%M').lstrip("0"),
+            # "unit": sunrise_dt.strftime('%p'),
+            "unit": "",
             "icon": self.get_plugin_dir('icons/sunrise.png')
         })
 
         sunset_epoch = weather.get('current', {}).get("sunset")
         sunset_dt = datetime.fromtimestamp(sunset_epoch, tz=timezone.utc).astimezone(tz)
         data_points.append({
-            "label": "Sunset",
-            "measurement": sunset_dt.strftime('%I:%M').lstrip("0"),
-            "unit": sunset_dt.strftime('%p'),
+            "label": "日没",
+            "measurement": sunset_dt.strftime('%-H:%M').lstrip("0"),
+            # "unit": sunset_dt.strftime('%p'),
+            "unit": "",
             "icon": self.get_plugin_dir('icons/sunset.png')
         })
 
         data_points.append({
-            "label": "Wind",
+            "label": "風速",
             "measurement": weather.get('current', {}).get("wind_speed"),
             "unit": UNITS[units]["speed"],
             "icon": self.get_plugin_dir('icons/wind.png')
         })
 
         data_points.append({
-            "label": "Humidity",
+            "label": "湿度",
             "measurement": weather.get('current', {}).get("humidity"),
             "unit": '%',
             "icon": self.get_plugin_dir('icons/humidity.png')
         })
 
         data_points.append({
-            "label": "Pressure",
+            "label": "気圧",
             "measurement": weather.get('current', {}).get("pressure"),
             "unit": 'hPa',
             "icon": self.get_plugin_dir('icons/pressure.png')
         })
 
         data_points.append({
-            "label": "UV Index",
+            "label": "紫外線指数",
             "measurement": weather.get('current', {}).get("uvi"),
             "unit": '',
             "icon": self.get_plugin_dir('icons/uvi.png')
@@ -173,7 +177,7 @@ class Weather(BasePlugin):
         visibility = weather.get('current', {}).get("visibility")/1000
         visibility_str = f">{visibility}" if visibility >= 10 else visibility
         data_points.append({
-            "label": "Visibility",
+            "label": "視程",
             "measurement": visibility_str,
             "unit": 'km',
             "icon": self.get_plugin_dir('icons/visibility.png')
@@ -181,7 +185,7 @@ class Weather(BasePlugin):
 
         aqi = air_quality.get('list', [])[0].get("main", {}).get("aqi")
         data_points.append({
-            "label": "Air Quality",
+            "label": "空気質",
             "measurement": aqi,
             "unit": ["Good", "Fair", "Moderate", "Poor", "Very Poor"][int(aqi)-1],
             "icon": self.get_plugin_dir('icons/aqi.png')
