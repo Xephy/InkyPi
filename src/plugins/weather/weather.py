@@ -185,7 +185,7 @@ class Weather(BasePlugin):
 
         aqi = air_quality.get('list', [])[0].get("main", {}).get("aqi")
         data_points.append({
-            "label": "空気質",
+            "label": "空気質指数",
             "measurement": aqi,
             "unit": ["Good", "Fair", "Moderate", "Poor", "Very Poor"][int(aqi)-1],
             "icon": self.get_plugin_dir('icons/aqi.png')
