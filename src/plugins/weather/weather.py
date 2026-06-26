@@ -31,6 +31,13 @@ WEATHER_URL = "https://api.openweathermap.org/data/3.0/onecall?lat={lat}&lon={lo
 AIR_QUALITY_URL = "http://api.openweathermap.org/data/2.5/air_pollution?lat={lat}&lon={long}&lang=ja&appid={api_key}"
 GEOCODING_URL = "http://api.openweathermap.org/geo/1.0/reverse?lat={lat}&lon={long}&lang=ja&limit=1&appid={api_key}"
 
+# ネットワークが不安定な環境（Pi Zeroなど）でリフレッシュスレッドが
+# 無限に停止しないよう、API呼び出しのタイムアウト秒数を設定する
+REQUEST_TIMEOUT = 10
+
+# 空気質指数(AQI 1〜5)の日本語評価ラベル
+AQI_LABELS = ["良い", "やや良い", "普通", "やや悪い", "悪い"]
+
 class Weather(BasePlugin):
     def generate_settings_template(self):
         template_params = super().generate_settings_template()
@@ -81,9 +88,12 @@ class Weather(BasePlugin):
         current = weather_data.get("current")
         dt = datetime.fromtimestamp(current.get('dt'), tz=timezone.utc).astimezone(tz)
         current_icon = current.get("weather")[0].get("icon").replace("n", "d")
-        location_str = f"{location_data.get('local_names')['ja']}"
+        # 海外地点などで日本語名(local_names.ja)が無い場合は英語名にフォールバック
+        local_names = location_data.get('local_names') or {}
+        location_str = local_names.get('ja') or location_data.get('name', '')
         data = {
             "current_date": dt.strftime("%Y年 %-m月 %-d日"),
+            "last_updated": datetime.now(tz).strftime("%-m/%-d %-H:%M 更新"),
             "location": location_str,
             "current_day_icon": self.get_plugin_dir(f'icons/{current_icon}.png'),
             "current_temperature": str(round(current.get("temp"))),
@@ -184,10 +194,11 @@ class Weather(BasePlugin):
         })
 
         aqi = air_quality.get('list', [])[0].get("main", {}).get("aqi")
+        aqi_label = AQI_LABELS[int(aqi)-1] if aqi and 1 <= int(aqi) <= len(AQI_LABELS) else ""
         data_points.append({
             "label": "空気質指数",
             "measurement": aqi,
-            "unit": ["Good", "Fair", "Moderate", "Poor", "Very Poor"][int(aqi)-1],
+            "unit": aqi_label,
             "icon": self.get_plugin_dir('icons/aqi.png')
         })
 
@@ -195,7 +206,7 @@ class Weather(BasePlugin):
 
     def get_weather_data(self, api_key, units, lat, long):
         url = WEATHER_URL.format(lat=lat, long=long, units=units, api_key=api_key)
-        response = requests.get(url)
+        response = requests.get(url, timeout=REQUEST_TIMEOUT)
         if not 200 <= response.status_code < 300:
             logging.error(f"Failed to retrieve weather data: {response.content}")
             raise RuntimeError("Failed to retrieve weather data.")
@@ -204,7 +215,7 @@ class Weather(BasePlugin):
     
     def get_air_quality(self, api_key, lat, long):
         url = AIR_QUALITY_URL.format(lat=lat, long=long, api_key=api_key)
-        response = requests.get(url)
+        response = requests.get(url, timeout=REQUEST_TIMEOUT)
 
         if not 200 <= response.status_code < 300:
             logging.error(f"Failed to get air quality data: {response.content}")
@@ -214,7 +225,7 @@ class Weather(BasePlugin):
     
     def get_location(self, api_key, lat, long):
         url = GEOCODING_URL.format(lat=lat, long=long, api_key=api_key)
-        response = requests.get(url)
+        response = requests.get(url, timeout=REQUEST_TIMEOUT)
 
         if not 200 <= response.status_code < 300:
             logging.error(f"Failed to get location: {response.content}")

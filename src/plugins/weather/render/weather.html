@@ -3,6 +3,7 @@
 {% block content %}
 <div class="weather-dashboard">
   <!-- Current Date -->
+  {% if last_updated %}<div class="last-updated">{{ last_updated }}</div>{% endif %}
   <div class="header">
     <div class="location">{{ location }}</div>
     <div class="current-date">{{ current_date }}</div>
