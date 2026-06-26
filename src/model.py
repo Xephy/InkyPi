@@ -158,11 +158,18 @@ class PlaylistManager:
 
     @staticmethod
     def should_refresh(latest_refresh, interval_seconds, current_time):
-        """Determines whether a refresh should occur on the interval and latest refresh time."""
+        """Determines whether a refresh should occur based on wall-clock boundaries.
+
+        Aligns to the next interval boundary after `latest_refresh` (e.g. for a 1h
+        interval, refreshes target HH:00:00) so processing time does not accumulate
+        as drift across cycles.
+        """
         if not latest_refresh:
             return True  # No previous refresh, so it's time to refresh
 
-        return (current_time - latest_refresh) >= timedelta(seconds=interval_seconds)
+        last_boundary = (latest_refresh.timestamp() // interval_seconds) * interval_seconds
+        next_boundary = last_boundary + interval_seconds
+        return current_time.timestamp() >= next_boundary
 
 class Playlist:
     """Represents a playlist with a time interval.
